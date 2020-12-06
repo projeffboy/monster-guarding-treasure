@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6349151928875962174}
   - component: {fileID: 2931604500597588581}
   - component: {fileID: 583760852484392687}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Mouse
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: fd4bc51c395304add92e7ac263cc6d3f, type: 2}
+  id: 2
 --- !u!136 &583760852484392687
 CapsuleCollider:
   m_ObjectHideFlags: 0

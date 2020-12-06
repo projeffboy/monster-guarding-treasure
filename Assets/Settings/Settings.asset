@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Settings
   m_EditorClassIdentifier: 
   pauseSpeed: 0.5
-  minSpeed: 1
-  maxSpeed: 4
+  minSpeed: 2
+  maxSpeed: 5
   maxSteerForce: 8
   colliderMask:
     serializedVersion: 2
-    m_Bits: 3840
+    m_Bits: 16128
   avoidCollisionWeight: 30
   avoidCollisionDistance: 5
   targetWeight: 2

@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Floor
   layers:
   - Default
   - TransparentFX
@@ -13,12 +14,12 @@ TagManager:
   - UI
   - 
   - 
-  - Obstacles
+  - Crates
   - Walls
   - Mice
-  - Characters
-  - 
-  - 
+  - Players
+  - Monsters
+  - Rocks
   - 
   - 
   - 
