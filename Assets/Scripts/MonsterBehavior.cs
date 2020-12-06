@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.AI;
+using System.Linq;
 
 public class MonsterBehavior : MonoBehaviour {
     public Text EnemyPlan;
@@ -11,6 +13,7 @@ public class MonsterBehavior : MonoBehaviour {
     public LayerMask PlayerMask;
     public LayerMask CrateMask;
     public LayerMask RockMask;
+    public NavMeshAgent agent;
     public float JitterDamp = 0.1f;
     public float RadiusPlayerDetection = 5;
     public float RadiusObstacleDetection = 20;
@@ -23,11 +26,13 @@ public class MonsterBehavior : MonoBehaviour {
     private float cooldownJustNow = 0;
     private GameObject obstacleToPickUp = null;
     private float degreesRotated = 0;
+    private bool isMoving = false;
 
     private Vector3 originalPosition;
     private Color purple;
 
     private string plan = "";
+    private bool idle = true;
 
     void Start() {
         originalPosition = transform.position;
@@ -41,17 +46,19 @@ public class MonsterBehavior : MonoBehaviour {
             );
             
             if (colliders.Length > 0) {
+                idle = false;
                 if (!isRed) {
                     plan = "AB";
                 }
-
-                plan += "Z";
-                plan += "CDE";
-                plan += "ZZ";
+                plan += "ZCDE";
 
                 UpdateEnemyPlanText();
             } else {
-                plan += "NZOPZ";
+                idle = true;
+                if (isRed) {
+                    plan = "MN";
+                }
+                plan += "ZOZPPZOZQZ";
             }
         } else {
             bool complete = false;
@@ -64,7 +71,7 @@ public class MonsterBehavior : MonoBehaviour {
                     complete = TurnRed();
                     break;
                 case 'C':
-                    complete = GoToRandomCrate();
+                    complete = GoToClosestCrate();
                     break;
                 case 'D':
                     complete = PickUp0bstacle();
@@ -73,13 +80,19 @@ public class MonsterBehavior : MonoBehaviour {
                     complete = ThrowObstacle();
                     break;
                 // Idle tasks
+                case 'M':
+                    complete = GoToSpawnLocation();
+                    break;
                 case 'N':
                     complete = TurnPurple();
                     break;
                 case 'O':
-                    complete = MoveSideways();
+                    complete = MoveLeft();
                     break;
                 case 'P':
+                    complete = MoveRight();
+                    break;
+                case 'Q':
                     complete = DoubleBarrelRoll();
                     break;
                 // Other
@@ -92,6 +105,16 @@ public class MonsterBehavior : MonoBehaviour {
                 plan = plan.Substring(1);
 
                 UpdateEnemyPlanText();
+
+                if (idle) {
+                    Collider[] colliders = Physics.OverlapSphere(
+                        transform.position, RadiusPlayerDetection, PlayerMask
+                    );
+
+                    if (colliders.Length > 0) {
+                        plan = "";
+                    }
+                }
             }
         }
     }
@@ -108,7 +131,7 @@ public class MonsterBehavior : MonoBehaviour {
                     EnemyPlan.text += "Turn Red from Anger";
                     break;
                 case 'C':
-                    EnemyPlan.text += "Go to Random Crate";
+                    EnemyPlan.text += "Go to Closest Crate";
                     break;
                 case 'D':
                     EnemyPlan.text += "Pick Up Obstacle";
@@ -117,13 +140,19 @@ public class MonsterBehavior : MonoBehaviour {
                     EnemyPlan.text += "Throw Obstacle";
                     break;
                 // Idle tasks
+                case 'M':
+                    EnemyPlan.text += "Go to Spawn Location";
+                    break;
                 case 'N':
                     EnemyPlan.text += "Turn Purple";
                     break;
                 case 'O':
-                    EnemyPlan.text += "Move Sideways";
+                    EnemyPlan.text += "Move Left";
                     break;
                 case 'P':
+                    EnemyPlan.text += "Move Right";
+                    break;
+                case 'Q':
                     EnemyPlan.text += "Barrel Roll";
                     break;
                 // Other
@@ -138,7 +167,7 @@ public class MonsterBehavior : MonoBehaviour {
     private bool Cooldown() { // Z
         cooldownJustNow += Time.deltaTime;
 
-        if (cooldownJustNow >= 1) {
+        if (cooldownJustNow >= 1.5f) {
             cooldownJustNow = 0;
             
             return true;
@@ -155,7 +184,7 @@ public class MonsterBehavior : MonoBehaviour {
 
         timeShakedJustNow += Time.deltaTime;
 
-        if (timeShakedJustNow >= 2) {
+        if (timeShakedJustNow >= 1) {
             timeShakedJustNow = 0;
 
             return true;
@@ -168,22 +197,36 @@ public class MonsterBehavior : MonoBehaviour {
         return TurnRedOverPurple(true);
     }
 
-    private bool GoToRandomCrate() { // C
-        Collider[] colliders = Physics.OverlapSphere(
-            transform.position, RadiusObstacleDetection, CrateMask
-        );
-
-        if (colliders.Length > 0) {
-            // Debug.Log(colliders[0]);
-            Vector3 position = colliders[0].transform.position;
-            transform.position = new Vector3(
-                position.x, originalPosition.y, position.z
+    private bool GoToClosestCrate() { // C
+        if (!isMoving) {
+            Collider[] colliders = Physics.OverlapSphere(
+                transform.position, RadiusObstacleDetection, CrateMask
             );
 
-            obstacleToPickUp = colliders[0].gameObject;
+            if (colliders.Length > 0) {
+                // would be faster if i didn't sort them all
+                Collider[] orderedColliders = colliders.OrderBy(
+                    c => Vector3.Distance(
+                        transform.position, c.transform.position
+                    )
+                ).ToArray();
+
+                Vector3 position = colliders[0].transform.position;
+                agent.SetDestination(new Vector3(
+                    position.x, originalPosition.y, position.z
+                ));
+
+                obstacleToPickUp = colliders[0].gameObject;
+            }
+
+            isMoving = true;
+        } else if (agent.remainingDistance <= 0.1f) {
+            isMoving = false;
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     private bool PickUp0bstacle() { // D
@@ -207,21 +250,25 @@ public class MonsterBehavior : MonoBehaviour {
         return true;
     }
 
+    private bool GoToSpawnLocation() { // M
+        return Move(originalPosition);
+    }
+
     private bool TurnPurple() { // N
         return TurnRedOverPurple(false);
     }
 
-    private bool MoveSideways() { // O
-        float x = Mathf.Sin(Time.time);
-        float z = Mathf.Sin(Time.time);
-        transform.Translate(new Vector3(x, 0, z) * Time.deltaTime);
-
-        timeShakedJustNow += Time.deltaTime;
-
-        return true;
+    private bool MoveLeft() { // O
+        return Move(transform.position - new Vector3(2, 0, 0));
     }
 
-    private bool DoubleBarrelRoll() { // P
+    private bool MoveRight() { // P
+        return Move(transform.position + new Vector3(2, 0, 0));
+    }
+
+    private bool DoubleBarrelRoll() { // Q
+        agent.enabled = false;
+
         float rotatedAmount = RotationSpeed * Time.deltaTime;
 
         transform.Rotate(0, 0, rotatedAmount);
@@ -232,6 +279,8 @@ public class MonsterBehavior : MonoBehaviour {
             degreesRotated = 0;
             transform.rotation = Quaternion.identity;
             
+            agent.enabled = true;
+
             return true;
         } else {
             return false;
@@ -239,6 +288,20 @@ public class MonsterBehavior : MonoBehaviour {
     }
 
     // Helper Tasks
+    private bool Move(Vector3 newSpot) {
+        if (!isMoving) {
+            agent.SetDestination(newSpot);
+
+            isMoving = true;
+        } else if (agent.remainingDistance <= 0.1f) {
+            isMoving = false;
+
+            return true;
+        }
+
+        return false;
+    }
+
     private bool TurnRedOverPurple(bool turnRed) {
         Mesh.material.color = turnRed ? Color.red : purple;
         isRed = turnRed;

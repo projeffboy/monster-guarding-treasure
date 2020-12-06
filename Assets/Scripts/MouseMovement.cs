@@ -1,4 +1,4 @@
-﻿// THIS CODE IS BASED ON THIS VIDEO ON VOIDS https://www.youtube.com/watch?v=bqtqltqcQhw
+﻿// THIS CODE IS BASED ON THIS VIDEO ON BOIDS https://www.youtube.com/watch?v=bqtqltqcQhw
 // MY VERSION IS IN 2D, HAS NO FLOCKING BEHAVIOR (EACH BOID HAS ITS OWN COLLIDER), AND HAS NO BOID MANAGER
 
 using System.Collections;

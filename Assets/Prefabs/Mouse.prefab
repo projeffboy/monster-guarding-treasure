@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: fd4bc51c395304add92e7ac263cc6d3f, type: 2}
-  id: 2
+  id: 1
 --- !u!136 &583760852484392687
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -60,7 +60,7 @@ CapsuleCollider:
   m_Radius: 0.3
   m_Height: 1.5
   m_Direction: 2
-  m_Center: {x: 0, y: 0, z: 0.041251272}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &4154384415608217699
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -152,6 +152,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 09cea7df0de2f4a8e9685c65efc5715d,
+        type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 09cea7df0de2f4a8e9685c65efc5715d, type: 3}
