@@ -1,5 +1,6 @@
 ﻿// THIS CODE IS BASED ON THIS VIDEO ON BOIDS https://www.youtube.com/watch?v=bqtqltqcQhw
 // MY VERSION IS IN 2D, HAS NO FLOCKING BEHAVIOR (EACH BOID HAS ITS OWN COLLIDER), HAS NO TARGET, AND HAS NO BOID MANAGER
+// ALSO CREDITS TO HIM FOR THE CONE MODEL
 
 using System.Collections;
 using System.Collections.Generic;
