@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// From Brackey's FPS tutorial
+
 public class PlayerMovement : MonoBehaviour {
     public float speed = 12f;
 

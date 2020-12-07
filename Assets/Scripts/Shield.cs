@@ -11,6 +11,7 @@ public class Shield : MonoBehaviour {
     private bool shieldIsActive = false;
     private bool shieldIsOut = false;
 
+    // call this when you get hit but have shield up
     public bool IsShieldActive() {
         return shieldIsActive;
     }
@@ -36,6 +37,7 @@ public class Shield : MonoBehaviour {
 
         if (shieldValue <= 0) {
             shieldIsOut = true;
+            shieldIsActive = false;
 
             shieldActivityText.text = "Shield is out of ammo.";
             shieldActivityText.color = Color.red;

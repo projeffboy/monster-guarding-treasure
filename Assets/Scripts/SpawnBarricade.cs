@@ -11,12 +11,13 @@ public class SpawnBarricade : MonoBehaviour {
         float posX = 0;
         float posZ = 0;
 
-        for (int i = 0; i < 12; i++) {
+        // Randomly but diagonally spawns a barricade
+        for (int i = 0; i < 10; i++) {
             int outcome = Random.Range(0, 3);
-            if (outcome == 0 || outcome == 2) {
+            if ((5 <= i && i <= 7) || outcome == 0 || outcome == 2) { // Taking care not to block player entrance
                 posX += 1.5f;
             }
-            if (outcome == 1 || outcome == 2) {
+            if (i < 4 || outcome == 1 || outcome == 2) { // Taking care not to encroach monster territory
                 posZ += -1.5f;
             }
 

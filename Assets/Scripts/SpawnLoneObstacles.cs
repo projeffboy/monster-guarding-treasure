@@ -25,11 +25,11 @@ public class SpawnLoneObstacles : MonoBehaviour {
 
             // Debug.Log("number of colliders found " + numCollidersFound);
 
-            if (numCollidersFound == 0) {
+            if (numCollidersFound == 0) { // AKA don't spawn if there's something there already
                 // Debug.Log("spawned obstacle");
                 GameObject obstacle = Instantiate(Obstacle(), transform);
                 obstacle.transform.localPosition = pos;
-                Physics.SyncTransforms();
+                Physics.SyncTransforms(); // VERY IMPORTANT!
             } /*else {
                 Debug.Log(
                     "name of collider 0 found" + colliderInOverlapBox[0].name

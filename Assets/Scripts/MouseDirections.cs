@@ -7,6 +7,7 @@ public static class MouseDirections {
     const int numDirections = 32;
     public static readonly Vector3[] directions;
 
+    // Aka shoot rays in a 270 degree FOV
     static MouseDirections() {
         directions = new Vector3[numDirections];
 

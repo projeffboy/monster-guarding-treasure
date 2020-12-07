@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// From Brackey's FPS tutorial
+
 public class PlayerLook : MonoBehaviour {
     public float mouseSensitivity = 100f;
     public Transform playerContainer;

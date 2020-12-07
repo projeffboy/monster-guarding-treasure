@@ -7,16 +7,17 @@ public class ProjectileDamage : MonoBehaviour {
 
     private bool lethal = false;
     private bool hitPlayer = false;
-    private Vector3 originalPosition;
+
+    public bool IsLethal() {
+        return lethal;
+    }
 
     void Start() {
-        originalPosition = transform.position;
-
         StartCoroutine(CheckLethal());
     }
 
     private IEnumerator CheckLethal() {
-        while (transform.position == originalPosition) {
+        while (transform.position.y < 2) {
             yield return null;
         }
         
@@ -27,7 +28,8 @@ public class ProjectileDamage : MonoBehaviour {
         if (lethal) {
             GameObject otherObj = collision.gameObject;
 
-            if (otherObj.CompareTag("Floor")|| otherObj.CompareTag("Player")) {
+            if (otherObj.CompareTag("Floor")) {
+                // Either disappear or make it non-lethal
                 StartCoroutine(Aftermath());
             }
 
@@ -37,6 +39,8 @@ public class ProjectileDamage : MonoBehaviour {
                 script.DecrementLife();
 
                 hitPlayer = true;
+                
+                gameObject.SetActive(false);
             }
         }
     }
@@ -48,6 +52,8 @@ public class ProjectileDamage : MonoBehaviour {
         hitPlayer = false;
         if (IsCrate) {
             gameObject.SetActive(false);
+        } else {
+            StartCoroutine(CheckLethal());
         }
     }
 }

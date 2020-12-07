@@ -20,7 +20,7 @@ public class MonsterBehavior : MonoBehaviour {
     public float ThrowingForce = 50;
     public float RotationSpeed = 60;
     public float moveInCircleSpeed = 2;
-    public float goToObstacleTimeout = 10;
+    public float PathingTimeout = 5;
     public AudioSource Sound;
 
     // Variables that have to do with when to stop tasks
@@ -32,6 +32,7 @@ public class MonsterBehavior : MonoBehaviour {
     private float degreesRotated = 0;
     private bool isMoving = false;
     private float moveInCircleAngle = 0;
+    private float pathingTimeout;
 
     private Vector3 originalPosition;
     private Vector3 shakePosition;
@@ -44,7 +45,8 @@ public class MonsterBehavior : MonoBehaviour {
     private bool newTask = true;
 
     void Start() {
-        originalPosition = transform.position;
+        pathingTimeout = PathingTimeout;
+        originalPosition = new Vector3(0, 1.583f, 7.5f); // transform.position;
         purple = Mesh.material.color;
 
         htnTree = new SpecificHtnTree();
@@ -52,13 +54,15 @@ public class MonsterBehavior : MonoBehaviour {
 
         planner = new SpecificHtnPlanner();
         GameObject[] crates = GameObject.FindGameObjectsWithTag("Crate");
-        planner.state.Edit(false, false, false, crates.Length);
+        planner.state.Edit(false, false, false, crates.Length); // initialize world state
     }
 
     private void CreatePlanHelper(bool playerMustBeInRange) {
+        // Refactoring into this function means calling overlapSphere a bit less
         if (playerMustBeInRange) {
             planner.state.SetIsPlayerInRange(true);
         } else {
+            // SENSOR
             Collider[] colliders = Physics.OverlapSphere(
                     transform.position, RadiusPlayerDetection, PlayerMask
                 );
@@ -77,11 +81,13 @@ public class MonsterBehavior : MonoBehaviour {
                 UpdateEnemyPlanText();
 
                 if (!planner.state.isPlayerInRange) {
+
                     Collider[] colliders = Physics.OverlapSphere(
                         transform.position, RadiusPlayerDetection, PlayerMask
                     );
 
                     if (colliders.Length > 0) {
+                        // In other words, world state and actual world state are now out of sync in terms of isPlayerInRange, so we replan since it's not valid anymore
                         planner.plan.Clear();
                         newTask = true;
                         CreatePlanHelper(true);
@@ -217,9 +223,9 @@ public class MonsterBehavior : MonoBehaviour {
     }
 
     private bool GoToNearestObstacle(LayerMask mask) { // C
-        goToObstacleTimeout -= Time.deltaTime;
-        if (goToObstacleTimeout <= 0) {
-            goToObstacleTimeout = 10;
+        pathingTimeout -= Time.deltaTime;
+        if (pathingTimeout <= 0) {
+            pathingTimeout = PathingTimeout;
             isMoving = false;
 
             return true;
@@ -239,7 +245,7 @@ public class MonsterBehavior : MonoBehaviour {
                 ).ToArray();
 
                 Vector3 position = colliders[0].transform.position;
-                position -= (position - transform.position) * 0.1f;
+                position -= (position - transform.position) * 0.1f; // otherwise monster may take the long route
                 Agent.SetDestination(new Vector3(
                     position.x, originalPosition.y, position.z
                 ));
@@ -344,6 +350,14 @@ public class MonsterBehavior : MonoBehaviour {
 
     // Helper Tasks
     private bool Move(Vector3 newSpot) {
+        pathingTimeout -= Time.deltaTime;
+        if (pathingTimeout <= 0) {
+            pathingTimeout = PathingTimeout;
+            isMoving = false;
+
+            return true;
+        }
+
         if (!isMoving) {
             Agent.SetDestination(newSpot);
 
@@ -357,6 +371,7 @@ public class MonsterBehavior : MonoBehaviour {
         return false;
     }
 
+    // so turn red or turn purple
     private bool TurnRedOverPurple(bool turnRed) {
         Mesh.material.color = turnRed ? Color.red : purple;
         isRed = turnRed;
