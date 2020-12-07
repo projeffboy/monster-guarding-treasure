@@ -108,4 +108,10 @@ public class MouseMovement : MonoBehaviour {
 
         return Vector3.ClampMagnitude(v, settings.maxSteerForce);
     }
+
+    /*
+    void OnCollisionEnter(Collision collision) {
+        Debug.Log(collision.gameObject);
+    }
+    */
 }

@@ -16,8 +16,8 @@ public class SpecificHtnTree {
 
         root.methods[0].tasks.AddRange(
             new List<HtnTask> {
-                new HtnTask("Cooldown"),
                 new HtnTask("Growl"),
+                new HtnTask("Cooldown"),
                 new HtnTask("React Angrily"),
                 new HtnTask("Projectile Attack")
             }
@@ -32,12 +32,11 @@ public class SpecificHtnTree {
             new List<HtnTask> {
                 new HtnTask("Shake"),
                 new HtnTask("Turn Red"),
-                new HtnTask("Cooldown"),
             }
         );
         root.methods[0].tasks[2].methods[1].tasks.AddRange(
             new List<HtnTask> {
-                new HtnTask("Cooldown")
+                new HtnTask("Stay Red")
             }
         );
         root.methods[0].tasks[3].methods.AddRange(
@@ -64,7 +63,7 @@ public class SpecificHtnTree {
         root.methods[1].tasks.AddRange(
             new List<HtnTask> {
                 new HtnTask("Cooldown"),
-                new HtnTask("Go to Origin"),
+                new HtnTask("Go to Spawn Location"),
                 new HtnTask("Turn Purple"),
                 new HtnTask("Idle Behavior")
             }
@@ -72,7 +71,7 @@ public class SpecificHtnTree {
         root.methods[1].tasks[3].methods.AddRange(
             new List<HtnMethod> {
                 new HtnMethod("Pace Back and Forth"),
-                new HtnMethod("Do the Figure-Eight")
+                new HtnMethod("Move in Circles")
             }
         );
         root.methods[1].tasks[3].methods[0].tasks.AddRange(
@@ -81,13 +80,13 @@ public class SpecificHtnTree {
                 new HtnTask("Move Right"),
                 new HtnTask("Move Right"),
                 new HtnTask("Move Left"),
-                new HtnTask("Do a Double Barrel Roll")
+                new HtnTask("Double Barrel Roll")
             }
         );
         root.methods[1].tasks[3].methods[1].tasks.AddRange(
             new List<HtnTask> {
-                new HtnTask("Go Around Left Circle"),
-                new HtnTask("Go Around Right Circle")
+                new HtnTask("Move in Circle"),
+                new HtnTask("Move in Circle")
             }
         );
     }

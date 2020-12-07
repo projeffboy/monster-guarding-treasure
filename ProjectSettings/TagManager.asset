@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Floor
   - Crate
+  - Monster
   layers:
   - Default
   - TransparentFX

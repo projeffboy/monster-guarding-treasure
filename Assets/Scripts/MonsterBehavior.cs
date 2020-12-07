@@ -17,9 +17,10 @@ public class MonsterBehavior : MonoBehaviour {
     public float JitterDamp = 0.1f;
     public float RadiusPlayerDetection = 5;
     public float RadiusObstacleDetection = 20;
-    public float ThrowingForce = 50f;
-    public float RotationSpeed = 60f;
-    public float moveInCircleSpeed = 2f;
+    public float ThrowingForce = 50;
+    public float RotationSpeed = 60;
+    public float moveInCircleSpeed = 2;
+    public float goToObstacleTimeout = 10;
 
     // Variables that have to do with when to stop tasks
     // (Nothing to do with world state)
@@ -201,6 +202,14 @@ public class MonsterBehavior : MonoBehaviour {
     }
 
     private bool GoToNearestCrate() { // C
+        goToObstacleTimeout -= Time.deltaTime;
+        if (goToObstacleTimeout <= 0) {
+            goToObstacleTimeout = 10;
+            isMoving = false;
+
+            return true;
+        }
+
         if (!isMoving) {
             Collider[] colliders = Physics.OverlapSphere(
                 transform.position, RadiusObstacleDetection, CrateMask

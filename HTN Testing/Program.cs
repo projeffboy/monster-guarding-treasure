@@ -5,7 +5,7 @@ namespace HTN_Testing {
         static void Main(string[] args) {
             var tree = new SpecificHtnTree();
             HtnTask root = tree.GetRoot();
-            // tree.Print();
+            tree.Print();
 
             var planner = new SpecificHtnPlanner();
             planner.createPlan(root);

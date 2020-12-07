@@ -65,7 +65,7 @@ public class SpecificHtnPlanner {
         switch (taskName) {
             case "Growl":
                 return state.isPlayerInRange;
-            case "Go to Origin":
+            case "Go to Spawn Location":
                 return !state.isPlayerInRange;
 
             case "Shake":
