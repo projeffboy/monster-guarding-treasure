@@ -19,148 +19,148 @@ public class MonsterBehavior : MonoBehaviour {
     public float RadiusObstacleDetection = 20;
     public float ThrowingForce = 50f;
     public float RotationSpeed = 60f;
+    public float moveInCircleSpeed = 2f;
 
-    // World State
+    // Variables that have to do with when to stop tasks
+    // (Nothing to do with world state)
     private float timeShakedJustNow = 0;
     private bool isRed = false;
     private float cooldownJustNow = 0;
     private GameObject obstacleToPickUp = null;
     private float degreesRotated = 0;
     private bool isMoving = false;
+    private float moveInCircleAngle = 0;
 
     private Vector3 originalPosition;
+    private Vector3 shakePosition;
     private Color purple;
 
-    private string plan = "";
-    private bool idle = true;
+    private SpecificHtnTree htnTree;
+    private SpecificHtnPlanner planner;
+    private string currentTask;
+    private bool newTask = true;
 
     void Start() {
         originalPosition = transform.position;
         purple = Mesh.material.color;
+
+        htnTree = new SpecificHtnTree();
+        // htnTree.Print();
+
+        planner = new SpecificHtnPlanner();
+        GameObject[] crates = GameObject.FindGameObjectsWithTag("Crate");
+        planner.state.Edit(false, false, false, crates.Length);
+    }
+
+    private void CreatePlanHelper(bool playerMustBeInRange) {
+        if (playerMustBeInRange) {
+            planner.state.SetIsPlayerInRange(true);
+        } else {
+            Collider[] colliders = Physics.OverlapSphere(
+                    transform.position, RadiusPlayerDetection, PlayerMask
+                );
+
+            planner.state.SetIsPlayerInRange(colliders.Length > 0);
+        }
+
+        planner.createPlan(htnTree.GetRoot());
     }
 
     void Update() {
-        if (plan == "") {
-            Collider[] colliders = Physics.OverlapSphere(
-                transform.position, RadiusPlayerDetection, PlayerMask
-            );
-            
-            if (colliders.Length > 0) {
-                idle = false;
-                if (!isRed) {
-                    plan = "AB";
-                }
-                plan += "ZCDE";
-
-                UpdateEnemyPlanText();
-            } else {
-                idle = true;
-                if (isRed) {
-                    plan = "MN";
-                }
-                plan += "ZOZPPZOZQZ";
-            }
+        if (planner.plan.Count == 0) {
+            CreatePlanHelper(false);
         } else {
-            bool complete = false;
-            switch (plan[0]) {
-                // Non-idle tasks
-                case 'A':
-                    complete = Shake();
-                    break;
-                case 'B':
-                    complete = TurnRed();
-                    break;
-                case 'C':
-                    complete = GoToClosestCrate();
-                    break;
-                case 'D':
-                    complete = PickUp0bstacle();
-                    break;
-                case 'E':
-                    complete = ThrowObstacle();
-                    break;
-                // Idle tasks
-                case 'M':
-                    complete = GoToSpawnLocation();
-                    break;
-                case 'N':
-                    complete = TurnPurple();
-                    break;
-                case 'O':
-                    complete = MoveLeft();
-                    break;
-                case 'P':
-                    complete = MoveRight();
-                    break;
-                case 'Q':
-                    complete = DoubleBarrelRoll();
-                    break;
-                // Other
-                case 'Z':
-                    complete = Cooldown();
-                    break;
-            }
-
-            if (complete) {
-                plan = plan.Substring(1);
-
+            if (newTask) {
                 UpdateEnemyPlanText();
 
-                if (idle) {
+                if (!planner.state.isPlayerInRange) {
                     Collider[] colliders = Physics.OverlapSphere(
                         transform.position, RadiusPlayerDetection, PlayerMask
                     );
 
+
                     if (colliders.Length > 0) {
-                        plan = "";
+                        planner.plan.Clear();
+                        newTask = true;
+                        CreatePlanHelper(true);
+
+                        return;
                     }
                 }
+
+                currentTask = planner.plan.Dequeue();
             }
+            
+            bool complete = false;
+
+            switch (currentTask) {
+                case "Cooldown":
+                    complete = Cooldown();
+                    break;
+                case "Growl":
+                    complete = Cooldown();
+                    break;
+                case "Shake":
+                    complete = Shake();
+                    break;
+                case "Turn Red":
+                    complete = TurnRed();
+                    break;
+                case "Stay Red":
+                    complete = true;
+                    break;
+                case "Go to Nearest Crate":
+                    complete = GoToNearestCrate();
+                    break;
+                case "Go to Nearest Rock":
+                    complete = GoToNearestCrate();
+                    break;
+                case "Pick It Up":
+                    complete = PickItUp();
+                    break;
+                case "Throw Crate":
+                case "Throw Rock":
+                    complete = ThrowObstacle();
+                    break;
+                case "Go to Spawn Location":
+                    complete = GoToSpawnLocation();
+                    break;
+                case "Turn Purple":
+                    complete = TurnPurple();
+                    break;
+                case "Move Left":
+                    complete = MoveLeft();
+                    break;
+                case "Move Right":
+                    complete = MoveRight();
+                    break;
+                case "Double Barrel Roll":
+                    complete = DoubleBarrelRoll();
+                    break;
+                case "Move in Circle":
+                    complete = MoveInCircle();
+                    break;
+                default:
+                    Debug.Log(
+                        "The task " + currentTask +  " is not registered."
+                    );
+                    complete = true;
+                    break;
+            }
+
+            newTask = complete;
         }
     }
 
     private void UpdateEnemyPlanText() {
-        EnemyPlan.text = "Enemy Plan (Next 5 Tasks):\n";
-        foreach (char task in plan) {
-            switch (task) {
-                // Non-idle tasks
-                case 'A':
-                    EnemyPlan.text += "Shake in Fury";
-                    break;
-                case 'B':
-                    EnemyPlan.text += "Turn Red from Anger";
-                    break;
-                case 'C':
-                    EnemyPlan.text += "Go to Closest Crate";
-                    break;
-                case 'D':
-                    EnemyPlan.text += "Pick Up Obstacle";
-                    break;
-                case 'E':
-                    EnemyPlan.text += "Throw Obstacle";
-                    break;
-                // Idle tasks
-                case 'M':
-                    EnemyPlan.text += "Go to Spawn Location";
-                    break;
-                case 'N':
-                    EnemyPlan.text += "Turn Purple";
-                    break;
-                case 'O':
-                    EnemyPlan.text += "Move Left";
-                    break;
-                case 'P':
-                    EnemyPlan.text += "Move Right";
-                    break;
-                case 'Q':
-                    EnemyPlan.text += "Barrel Roll";
-                    break;
-                // Other
-                case 'Z':
-                    EnemyPlan.text += "Cooldown";
-                    break;
-            }
-            EnemyPlan.text += "\n";
+        EnemyPlan.text = "Enemy Plan:\n";
+
+        var planCopy = new Queue<string>(planner.plan);
+
+        while(planCopy.Count > 0) {
+            string taskMsg = planCopy.Dequeue();
+
+            EnemyPlan.text += taskMsg + "\n";
         }
     }
 
@@ -177,27 +177,30 @@ public class MonsterBehavior : MonoBehaviour {
     }
 
     private bool Shake() { // A
-        float x = Random.value;
-        float z = Random.value;
-        Vector3 jitter = new Vector3(x, 0, z) * JitterDamp;
-        transform.position = originalPosition + jitter;
+        if (timeShakedJustNow == 0) {
+            shakePosition = transform.position;
+        } else if (timeShakedJustNow < 1.5f) {
+            float x = Random.value;
+            float z = Random.value;
+            Vector3 jitter = new Vector3(x, 0, z) * JitterDamp;
 
-        timeShakedJustNow += Time.deltaTime;
-
-        if (timeShakedJustNow >= 1) {
+            transform.position = shakePosition + jitter;
+        } else {
             timeShakedJustNow = 0;
 
             return true;
-        } else {
-            return false;
         }
+
+        timeShakedJustNow += Time.deltaTime;
+
+        return false;
     }
 
     private bool TurnRed() { // B
         return TurnRedOverPurple(true);
     }
 
-    private bool GoToClosestCrate() { // C
+    private bool GoToNearestCrate() { // C
         if (!isMoving) {
             Collider[] colliders = Physics.OverlapSphere(
                 transform.position, RadiusObstacleDetection, CrateMask
@@ -212,24 +215,30 @@ public class MonsterBehavior : MonoBehaviour {
                 ).ToArray();
 
                 Vector3 position = colliders[0].transform.position;
+                position = colliders[0].ClosestPointOnBounds(position);
                 agent.SetDestination(new Vector3(
                     position.x, originalPosition.y, position.z
                 ));
 
                 obstacleToPickUp = colliders[0].gameObject;
+                
+                isMoving = true;
+            } else {
+                return true;
             }
 
-            isMoving = true;
         } else if (agent.remainingDistance <= 0.1f) {
             isMoving = false;
 
             return true;
         }
 
+        // Debug.Log(agent.remainingDistance);
+
         return false;
     }
 
-    private bool PickUp0bstacle() { // D
+    private bool PickItUp() { // D
         obstacleToPickUp.transform.Translate(
             new Vector3(0, Collider.height + 0.5f, 0)
         );
@@ -271,7 +280,7 @@ public class MonsterBehavior : MonoBehaviour {
 
         float rotatedAmount = RotationSpeed * Time.deltaTime;
 
-        transform.Rotate(0, 0, rotatedAmount);
+        transform.Rotate(rotatedAmount, 0, 0, Space.World);
 
         degreesRotated += rotatedAmount;
 
@@ -280,6 +289,28 @@ public class MonsterBehavior : MonoBehaviour {
             transform.rotation = Quaternion.identity;
             
             agent.enabled = true;
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private bool MoveInCircle() {
+        moveInCircleAngle += Time.deltaTime * moveInCircleSpeed;
+
+        Vector3 center = originalPosition - new Vector3(0, 0, 1);
+
+        var offset = new Vector3(
+            Mathf.Sin(moveInCircleAngle),
+            0,
+            Mathf.Cos(moveInCircleAngle)
+        );
+
+        transform.position = center + offset;
+
+        if (moveInCircleAngle >= 6.28f) {
+            moveInCircleAngle = 0;
 
             return true;
         } else {

@@ -11,6 +11,10 @@ public class Shield : MonoBehaviour {
     private bool shieldIsActive = false;
     private bool shieldIsOut = false;
 
+    public bool IsShieldActive() {
+        return shieldIsActive;
+    }
+
     void Update() {   
         if (shieldIsOut) {
             return;

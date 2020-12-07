@@ -6,6 +6,7 @@ public class SpawnLoneObstacles : MonoBehaviour {
     public GameObject Crate;
     public GameObject Rock;
     public LayerMask obstacleLayer;
+    public GameObject Monster;
 
     void Start() {
         for (int i = 0; i < 10; i++) {
@@ -35,6 +36,8 @@ public class SpawnLoneObstacles : MonoBehaviour {
                 );
             }*/
         }
+
+        Monster.SetActive(true);
     }
 
     private GameObject Obstacle() {

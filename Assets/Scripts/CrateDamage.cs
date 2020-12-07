@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CrateDamage : MonoBehaviour {
     private bool lethal = false;
+    private bool hitPlayer = false;
     private Vector3 originalPosition;
 
     void Start() {
@@ -31,12 +32,12 @@ public class CrateDamage : MonoBehaviour {
                 StartCoroutine(Disappear());
             }
 
-            if (otherObj.CompareTag("Player")) {
-                Debug.Log("You got hit");
-
-                //LoseCondition script = otherObj.GetComponent<LoseCondition>();
+            if (otherObj.CompareTag("Player") && !hitPlayer) {
+                LoseCondition script = otherObj.GetComponent<LoseCondition>();
                 
-                //script.DecrementLife();
+                script.DecrementLife();
+
+                hitPlayer = true;
             }
         }
     }
