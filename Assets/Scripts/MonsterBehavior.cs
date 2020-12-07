@@ -13,7 +13,7 @@ public class MonsterBehavior : MonoBehaviour {
     public LayerMask PlayerMask;
     public LayerMask CrateMask;
     public LayerMask RockMask;
-    public NavMeshAgent agent;
+    public NavMeshAgent Agent;
     public float JitterDamp = 0.1f;
     public float RadiusPlayerDetection = 5;
     public float RadiusObstacleDetection = 20;
@@ -21,6 +21,7 @@ public class MonsterBehavior : MonoBehaviour {
     public float RotationSpeed = 60;
     public float moveInCircleSpeed = 2;
     public float goToObstacleTimeout = 10;
+    public AudioSource Sound;
 
     // Variables that have to do with when to stop tasks
     // (Nothing to do with world state)
@@ -36,6 +37,7 @@ public class MonsterBehavior : MonoBehaviour {
     private Vector3 shakePosition;
     private Color purple;
 
+    // HTN Related
     private SpecificHtnTree htnTree;
     private SpecificHtnPlanner planner;
     private string currentTask;
@@ -79,7 +81,6 @@ public class MonsterBehavior : MonoBehaviour {
                         transform.position, RadiusPlayerDetection, PlayerMask
                     );
 
-
                     if (colliders.Length > 0) {
                         planner.plan.Clear();
                         newTask = true;
@@ -99,7 +100,7 @@ public class MonsterBehavior : MonoBehaviour {
                     complete = Cooldown();
                     break;
                 case "Growl":
-                    complete = Cooldown();
+                    complete = Growl();
                     break;
                 case "Shake":
                     complete = Shake();
@@ -114,7 +115,7 @@ public class MonsterBehavior : MonoBehaviour {
                     complete = GoToNearestCrate();
                     break;
                 case "Go to Nearest Rock":
-                    complete = GoToNearestCrate();
+                    complete = GoToNearestRock();
                     break;
                 case "Pick It Up":
                     complete = PickItUp();
@@ -177,6 +178,12 @@ public class MonsterBehavior : MonoBehaviour {
         }
     }
 
+    private bool Growl() {
+        Sound.Play();
+
+        return true;
+    }
+
     private bool Shake() { // A
         if (timeShakedJustNow == 0) {
             shakePosition = transform.position;
@@ -201,7 +208,15 @@ public class MonsterBehavior : MonoBehaviour {
         return TurnRedOverPurple(true);
     }
 
-    private bool GoToNearestCrate() { // C
+    private bool GoToNearestCrate() {
+        return GoToNearestObstacle(CrateMask);
+    }
+
+    private bool GoToNearestRock() {
+        return GoToNearestObstacle(RockMask);
+    }
+
+    private bool GoToNearestObstacle(LayerMask mask) { // C
         goToObstacleTimeout -= Time.deltaTime;
         if (goToObstacleTimeout <= 0) {
             goToObstacleTimeout = 10;
@@ -212,7 +227,7 @@ public class MonsterBehavior : MonoBehaviour {
 
         if (!isMoving) {
             Collider[] colliders = Physics.OverlapSphere(
-                transform.position, RadiusObstacleDetection, CrateMask
+                transform.position, RadiusObstacleDetection, mask
             );
 
             if (colliders.Length > 0) {
@@ -224,8 +239,8 @@ public class MonsterBehavior : MonoBehaviour {
                 ).ToArray();
 
                 Vector3 position = colliders[0].transform.position;
-                position = colliders[0].ClosestPointOnBounds(position);
-                agent.SetDestination(new Vector3(
+                position -= (position - transform.position) * 0.1f;
+                Agent.SetDestination(new Vector3(
                     position.x, originalPosition.y, position.z
                 ));
 
@@ -236,13 +251,13 @@ public class MonsterBehavior : MonoBehaviour {
                 return true;
             }
 
-        } else if (agent.remainingDistance <= 0.1f) {
+        } else if (Agent.remainingDistance <= 0.1f) {
             isMoving = false;
 
             return true;
         }
 
-        // Debug.Log(agent.remainingDistance);
+        // Debug.Log(Agent.remainingDistance);
 
         return false;
     }
@@ -285,7 +300,7 @@ public class MonsterBehavior : MonoBehaviour {
     }
 
     private bool DoubleBarrelRoll() { // Q
-        agent.enabled = false;
+        Agent.enabled = false;
 
         float rotatedAmount = RotationSpeed * Time.deltaTime;
 
@@ -297,7 +312,7 @@ public class MonsterBehavior : MonoBehaviour {
             degreesRotated = 0;
             transform.rotation = Quaternion.identity;
             
-            agent.enabled = true;
+            Agent.enabled = true;
 
             return true;
         } else {
@@ -330,10 +345,10 @@ public class MonsterBehavior : MonoBehaviour {
     // Helper Tasks
     private bool Move(Vector3 newSpot) {
         if (!isMoving) {
-            agent.SetDestination(newSpot);
+            Agent.SetDestination(newSpot);
 
             isMoving = true;
-        } else if (agent.remainingDistance <= 0.1f) {
+        } else if (Agent.remainingDistance <= 0.1f) {
             isMoving = false;
 
             return true;

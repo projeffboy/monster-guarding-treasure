@@ -109,9 +109,9 @@ public class MouseMovement : MonoBehaviour {
         return Vector3.ClampMagnitude(v, settings.maxSteerForce);
     }
 
-    /*
     void OnCollisionEnter(Collision collision) {
-        Debug.Log(collision.gameObject);
+        Debug.Log("Mouse was destroyed by monster");
+        
+        gameObject.SetActive(false);
     }
-    */
 }
